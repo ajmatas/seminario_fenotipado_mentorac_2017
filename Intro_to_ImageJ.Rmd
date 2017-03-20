@@ -1,0 +1,56 @@
+---
+title: "Análisis de imágen con ImageJ"
+author: "Antonio J Matas Arroyo. Universidad de Málaga (España)"
+date: "24 de febrero de 2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importar los datos y comprobando su estructura
+
+Comenzamos importando los datos de las hojas y comprobamos que los datos son los correctos:
+
+```{r cars}
+hojas <- read.delim("datos_hojas.txt", header=TRUE, sep="\t", dec=",")
+head(hojas)
+summary(hojas)
+```
+
+## Visualizando los datos por especie y espécimen
+
+
+```{r pressure, echo=FALSE}
+boxplot(data=hojas, Area~Especie*id)
+```
+
+Siguiendo este ejemplo, podemos ir comparando la distribución de las otras variables, una a una, y elegir la que mejor diferencia a las hojas de cada especie.
+
+## Un ejemplo de análisis complejo, PCA
+
+El análisis de componentes principales (PCA en inglés) permite estudiar la similitud o diferencia entre muestras (especies, espécimenes) usando numerosas variables a la vez. Para ello crea nuevas variables (componentes principales) a partir de la combinación de las variables reales en función de la variabilidad de cada una de ellas.
+
+Los resultados se muestran en un espacio bidimensional que indica la contribución y dirección de cada variable origianl así como las distancias relativas de las mustras. Usando una variable categórica, como especie, nos permite agrupar las muestras con un mismo origen.
+
+```{r}
+# Cargar los paquetes necesarios. Si no están instalados, usar install.packages("nombredelpaquete")
+library("FactoMineR")
+library("factoextra")
+library("ade4")
+library("phytools")
+
+# Nos quedamos solo con los datos numéricos
+hojasN<-hojas[,3:length(head(hojas))]
+
+res.pca <- dudi.pca(hojasN, scannf = FALSE, nf = 3)
+s.corcircle(res.pca$co) # PCA con las variables en un círculo
+s.arrow(7*res.pca$c1) # PCA con las variables en un cuadrado
+s.label(res.pca$li, xax = 1, yax = 2, add.plot=TRUE)# PCA con las variables en un cuadrado y las muestras etiquetadas
+scatter(res.pca) # Lo mismo que el de antes con los Eigenvalues
+scatter(res.pca,  posieig = "none", clab.row = 0) # Variables etiquetadas, muestras solo puntos
+quali.sup=as.factor(hojas$id) # se puede probar también con especie
+s.class(res.pca$li, fac = quali.sup, xax = 1, yax = 2) # Muestras con circulo por especie
+```
+
